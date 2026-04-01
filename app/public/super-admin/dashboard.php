@@ -38,7 +38,6 @@ requireRole('super_admin');
             <h2 class="text-xl font-semibold mb-6 text-blue-800">Register New Restaurant</h2>
             <form action="add_company.php" method="POST" class="space-y-6">
                 
-                <!-- Section 1: Basic Info -->
                 <div>
                     <div class="section-title">Basic Information</div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -48,7 +47,6 @@ requireRole('super_admin');
                     </div>
                 </div>
 
-                <!-- Section 2: Location & Legal -->
                 <div>
                     <div class="section-title">Location & Legal Compliance</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -60,7 +58,6 @@ requireRole('super_admin');
                     </div>
                 </div>
 
-                <!-- Section 3: Digital Presence -->
                 <div>
                     <div class="section-title">Digital Presence & Receipts</div>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -68,10 +65,18 @@ requireRole('super_admin');
                         <input type="text" name="instagram_url" placeholder="Instagram URL (Optional)" class="border p-2 rounded focus:ring-blue-500">
                         <input type="text" name="whatsapp_number" placeholder="WhatsApp Number (e.g., +96891914282)" class="border p-2 rounded focus:ring-blue-500">
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">* WhatsApp number is used for 1-click receipt sharing to customers and daily sales reports to owners.</p>
                 </div>
 
-                <!-- Section 4: Appearance -->
+                <!-- NEW: Restaurant Admin Credentials -->
+                <div>
+                    <div class="section-title text-red-700">Restaurant Admin Login Credentials</div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <input type="text" name="admin_name" placeholder="Admin Name (e.g., John Doe) *" required class="border p-2 rounded border-red-200 focus:ring-red-500">
+                        <input type="email" name="admin_email" placeholder="Admin Email (Their Login) *" required class="border p-2 rounded border-red-200 focus:ring-red-500">
+                        <input type="password" name="admin_password" placeholder="Admin Password (Min 8 chars) *" required minlength="8" class="border p-2 rounded border-red-200 focus:ring-red-500">
+                    </div>
+                </div>
+
                 <div>
                     <div class="section-title">Appearance</div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -81,16 +86,15 @@ requireRole('super_admin');
                             <option value="classic">Classic Diner (Red)</option>
                             <option value="rustic">Rustic Bakery (Brown)</option>
                         </select>
-                        <button type="submit" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 font-bold transition">Save Restaurant</button>
+                        <button type="submit" class="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 font-bold transition">Save Restaurant & Create Admin</button>
                     </div>
                 </div>
 
             </form>
         </div>
 
-        <!-- Team & Tables Below... -->
+        <!-- Tables Below -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <!-- SA Team -->
             <div class="lg:col-span-1 bg-white rounded-lg shadow p-6 border">
                 <h2 class="text-lg font-semibold mb-4 text-gray-800 border-b pb-2">SA Team</h2>
                 <form action="add_sa_user.php" method="POST" class="space-y-2 mb-4">
@@ -104,20 +108,27 @@ requireRole('super_admin');
                 <?php endforeach; ?>
             </div>
 
-            <!-- Restaurants List -->
             <div class="lg:col-span-2 bg-white rounded-lg shadow overflow-hidden border">
                 <div class="p-4 border-b bg-gray-50"><h2 class="text-lg font-semibold">Restaurants (<?= count($companies) ?>)</h2></div>
                 <table class="w-full text-left border-collapse text-sm">
                     <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
-                        <tr><th class="p-3">Name</th><th class="p-3">Slug</th><th class="p-3">CR / VAT</th><th class="p-3">Theme</th></tr>
+                        <tr><th class="p-3">Name</th><th class="p-3">Admin Email</th><th class="p-3">Theme</th><th class="p-3">Action</th></tr>
                     </thead>
                     <tbody>
                         <?php foreach ($companies as $c): ?>
+                            <?php 
+                                // Fetch the admin linked to this company
+                                $adm = $pdo->prepare("SELECT email FROM users WHERE company_id = ? AND role='company_admin' LIMIT 1");
+                                $adm->execute([$c['id']]);
+                                $admin_email = $adm->fetchColumn();
+                            ?>
                             <tr class="border-b hover:bg-gray-50">
                                 <td class="p-3 font-semibold"><?= sanitize($c['name']) ?></td>
-                                <td class="p-3 text-gray-500"><?= sanitize($c['slug']) ?></td>
-                                <td class="p-3 text-xs"><?= sanitize($c['cr_number'] ?? '-') ?> / <?= sanitize($c['vat_number'] ?? '-') ?></td>
+                                <td class="p-3 text-gray-500"><?= sanitize($admin_email ?? 'No Admin') ?></td>
                                 <td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"><?= $c['theme'] ?></span></td>
+                                <td class="p-3">
+                                    <a href="view_company.php?id=<?= $c['id'] ?>" class="text-blue-600 hover:underline text-xs">Manage Taxes/Details</a>
+                                </td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
