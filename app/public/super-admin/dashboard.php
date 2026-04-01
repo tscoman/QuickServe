@@ -127,7 +127,7 @@ requireRole('super_admin');
                                 <td class="p-3 text-gray-500"><?= sanitize($admin_email ?? 'No Admin') ?></td>
                                 <td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"><?= $c['theme'] ?></span></td>
                                 <td class="p-3">
-                                    <a href="view_company.php?id=<?= $c['id'] ?>" class="text-blue-600 hover:underline text-xs">Manage Taxes/Details</a>
+                                    <a href="view_company.php?id=<?= $c['id'] ?>" class="text-blue-600 hover:underline text-xs mr-2">Manage</a> <a href="delete_company.php?id=<?= $c['id'] ?>" class="text-red-600 hover:underline text-xs" onclick="return confirm('⚠️ Are you sure? This will permanently delete this restaurant, its menus, users, and all order history!')">Delete</a>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
