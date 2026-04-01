@@ -1,5 +1,5 @@
--- QrServe Database Schema
--- Tables: companies, users, categories, menu_items, tables, orders, order_items
+-- QrServe Database Schema (Updated: Premium Features)
+-- Note: Run using 'qrserve_user' credentials.
 companies
 CREATE TABLE `companies` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -8,7 +8,6 @@ CREATE TABLE `companies` (
   `logo_url` varchar(500) DEFAULT NULL,
   `address` text DEFAULT NULL,
   `phone` varchar(50) DEFAULT NULL,
-  `tax_percentage` decimal(5,2) DEFAULT 0.00,
   `theme` enum('midnight','garden','classic','rustic') DEFAULT 'midnight',
   `stripe_public_key` text DEFAULT NULL,
   `stripe_secret_key` text DEFAULT NULL,
@@ -18,8 +17,27 @@ CREATE TABLE `companies` (
   `translation_api_key` text DEFAULT NULL,
   `status` enum('active','suspended') DEFAULT 'active',
   `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `street_address` text DEFAULT NULL,
+  `website_url` varchar(255) DEFAULT NULL,
+  `vat_number` varchar(100) DEFAULT NULL,
+  `cr_number` varchar(100) DEFAULT NULL,
+  `instagram_url` varchar(255) DEFAULT NULL,
+  `whatsapp_number` varchar(50) DEFAULT NULL COMMENT 'Used for Click-to-Chat receipts',
+  `current_day_status` enum('open','closed') DEFAULT 'open',
+  `last_closed_date` date DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `slug` (`slug`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+taxes
+CREATE TABLE `taxes` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `company_id` int(11) NOT NULL,
+  `tax_name` varchar(100) NOT NULL COMMENT 'e.g., VAT, Tourism Tax',
+  `percentage` decimal(5,2) NOT NULL COMMENT 'e.g., 5.00',
+  `is_active` tinyint(1) DEFAULT 1,
+  PRIMARY KEY (`id`),
+  KEY `company_id` (`company_id`),
+  CONSTRAINT `taxes_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 users
 CREATE TABLE `users` (
@@ -34,7 +52,7 @@ CREATE TABLE `users` (
   UNIQUE KEY `email` (`email`),
   KEY `company_id` (`company_id`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`company_id`) REFERENCES `companies` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
 categories
 CREATE TABLE `categories` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
