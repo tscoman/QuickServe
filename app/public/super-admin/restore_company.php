@@ -91,6 +91,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 </div>
 </div>
+</div>
 
 // Get available backups
  $backup_dir = "/opt/QrServe/backups/company_{$company_id}";
