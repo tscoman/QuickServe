@@ -1,0 +1,14 @@
+=== QrServe [SCRIPT-05-R04] Execution Report ===
+Timestamp: Thu Apr  2 02:59:33 UTC 2026
+-----------------------------------
+[1/4] Creating languages table...
+✅ SUCCESS: Languages table created (English & Arabic seeded).
+[2/4] Creating payment_methods table...
+✅ SUCCESS: payment_methods table created.
+[3/4] Seeding default payment methods...
+✅ SUCCESS: Default payment methods seeded.
+[4/4] Adding default_language_id to companies...
+✅ SUCCESS: Companies linked to languages.
+-----------------------------------
+END OF REPORT
+

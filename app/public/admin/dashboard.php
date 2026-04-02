@@ -80,7 +80,65 @@ requireRole('company_admin');
                 <form action="add_staff.php" method="POST" class="space-y-2"><input type="text" name="name" required placeholder="Name" class="w-full bg-gray-900 border border-gray-700 p-2 rounded text-sm"><input type="email" name="email" required placeholder="Email" class="w-full bg-gray-900 border border-gray-700 p-2 rounded text-sm"><input type="password" name="password" required placeholder="Password" class="w-full bg-gray-900 border border-gray-700 p-2 rounded text-sm"><button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white p-2 rounded font-bold text-sm">ADD USER</button></form>
                 <div class="mt-4 space-y-2"><?php foreach ($staff_list as $s): ?><div class="flex justify-between text-sm bg-gray-900 p-2 rounded border-l-4 border-gray-600"><span><?= sanitize($s['name']) ?></span><a href="delete_staff.php?id=<?= $s['id'] ?>" class="text-red-500 hover:text-red-400 text-xs">X</a></div><?php endforeach; ?></div>
             </div>
-            <div class="mt-auto pt-8 border-t border-gray-700 text-center opacity-50"><img src="<?= TSCO_LOGO_LIGHT ?>" class="h-6 mx-auto mb-1"><p class="text-xs text-gray-500">Powered by QrServe</p></div>
+            
+<!-- PRINTERS & RECEIPT SETTINGS -->
+<div>
+    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">🖨️ Printers & Receipt Setup</h3>
+    <div class="bg-gray-900 p-3 rounded-lg mb-4">
+        <form action="add_printer.php" method="POST" class="space-y-2">
+            <input type="text" name="printer_name" placeholder="Printer Name (e.g., Main Grill)" required class="w-full bg-gray-800 border border-gray-600 p-1.5 rounded text-xs">
+            <select name="printer_type" class="w-full bg-gray-800 border border-gray-600 p-1.5 rounded text-xs text-gray-400">
+                <option value="kitchen">Kitchen (Food Prep)</option>
+                <option value="cashier">Cashier (Receipt Printer)</option>
+                <option value="bar">Bar (Beverages)</option>
+            </select>
+            <input type="text" name="identifier" placeholder="IP Address (192.168.1.50) or OS Name" class="w-full bg-gray-800 border border-gray-600 p-1.5 rounded text-xs">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white p-1.5 rounded font-bold text-xs">+ Add Printer</button>
+        </form>
+        <div class="space-y-2 mt-4 max-h-24 overflow-y-auto pr-1">
+            <?php 
+            $prn_stmt = $pdo->prepare("SELECT * FROM printers WHERE company_id = ? ORDER BY id DESC"); 
+            $prn_stmt->execute([$company_id]); 
+            $all_printers = $prn_stmt->fetchAll(); 
+            foreach ($all_printers as $prn): ?>
+                <div class="flex justify-between items-center text-xs bg-gray-800 p-1.5 rounded border-l-2 border-blue-500">
+                    <div>
+                        <span class="font-bold text-white"><?= sanitize($prn['printer_name']) ?></span>
+                        <span class="text-gray-500 block">Type: <?= $prn['printer_type'] ?> | ID: <?= sanitize($prn['identifier']) ?></span>
+                    </div>
+                    <a href="delete_printer.php?id=<?= $prn['id'] ?>" class="text-red-500 hover:text-red-400 text-xs font-bold">X</a>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    </div>
+</div>
+
+<div>
+    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">🧾 Receipt Customization</h3>
+    <form action="save_receipt_settings.php" method="POST" class="bg-gray-900 p-3 rounded-lg space-y-2 text-xs">
+        <p class="text-gray-400 mb-2">Adjust what prints on customer receipts.</p>
+        <label class="flex items-center gap-2 text-gray-300">
+            <input type="hidden" name="save_receipt" value="1">
+            <input type="checkbox" name="receipt_show_vat" value="1" <?= $company['receipt_show_vat'] ? 'checked' : '' ?> class="w-4 h-4 rounded">
+            <span>Display VAT % on receipt</span>
+        </label>
+        <label class="flex items-center gap-2 text-gray-300">
+            <input type="checkbox" name="receipt_show_cr" value="1" <?= $company['receipt_show_cr'] ? 'checked' : '' ?> class="w-4 h-4 rounded">
+            <span>Display CR Number on receipt</span>
+        </label>
+        <label class="flex items-center gap-2 text-gray-300">
+            <input type="checkbox" name="receipt_show_tax_breakdown" value="1" <?= $company['receipt_show_tax_breakdown'] ? 'checked' : '' ?> class="w-4 h-4 rounded">
+            <span>Show individual tax breakdown</span>
+        </label>
+        <select name="receipt_logo_position" class="w-full bg-gray-800 border border-gray-600 p-1.5 rounded text-gray-400">
+            <option value="top" <?= $company['receipt_logo_position'] == 'top' ? 'selected' : '' ?>>Logo at Top (Standard)</option>
+            <option value="center" <?= $company['receipt_logo_position'] == 'center' ? 'selected' : '' ?>>Logo Centered (Fancy)</option>
+            <option value="none" <?= $company['receipt_logo_position'] == 'none' ? 'selected' : '' ?>>No Logo (Text Only)</option>
+        </select>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white p-1.5 rounded font-bold text-xs">Save Settings</button>
+    </form>
+</div>
+<div class="mt-auto pt-8 border-t border-gray-700 text-center opacity-50"><img src="<?= TSCO_LOGO_LIGHT ?>" class="h-6 mx-auto mb-1"><p class="text-xs text-gray-500">Powered by QrServe</p></div>
         </aside>
         <section class="flex-1 bg-gray-950 p-8 overflow-y-auto">
             <div class="bg-gray-800 rounded-2xl border border-gray-700 p-6 mb-8 shadow-lg">

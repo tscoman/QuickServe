@@ -1,0 +1,12 @@
+=== QrServe [DB-UPGRADE-VERIFICATION] Execution Report ===
+Timestamp: Thu Apr  2 02:57:44 UTC 2026
+-----------------------------------
+[1/1] Upgrading orders table for offline proof tracking...
+✅ SUCCESS: Orders table upgraded with Verification Layer.
+   - Added: payment_proof_url (for receipt photos)
+   - Added: proof_status (awaiting_proof, approved, rejected)
+   - Added: assigned_waiter_id (links order to waiter for liability)
+   - Added: offline_card to payment methods
+-----------------------------------
+END OF REPORT
+
