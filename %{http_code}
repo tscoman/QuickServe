@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Grill - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex justify-center items-center p-4">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-blue-600">
+        <!-- Logo -->
+        <div class="flex justify-center mb-6">
+                        <div class="w-32 h-32 rounded-full bg-gray-100 border-4 border-dashed border-gray-300 p-2 flex items-center justify-center overflow-hidden">
+                <img src="http://localhost:8081/uploads/2/logo.webp" alt="The Grill" 
+                     class="max-w-full max-h-full object-contain rounded-full"
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                <span class="text-3xl font-bold text-gray-400 hidden">T</span>
+            </div>
+                    </div>
+
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-2">The Grill</h2>
+        <p class="text-center text-gray-500 mb-4 text-sm">Welcome! Please sign in.</p>
+
+        <!-- Language Switcher (only on restaurant portals) -->
+                <div class="flex justify-center gap-2 mb-4">
+                        <a href="?lang=en" 
+               class="text-xs px-3 py-1 rounded bg-blue-600 text-white transition"
+               dir="ltr">
+                English            </a>
+                        <a href="?lang=ar" 
+               class="text-xs px-3 py-1 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+               dir="rtl">
+                Arabic            </a>
+                    </div>
+        
+        
+        <form action="login_process.php" method="POST" class="space-y-4">
+            <input type="email" name="email" required placeholder="Email Address" autocomplete="email" class="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500">
+            <input type="password" name="password" required placeholder="Password" minlength="6" autocomplete="current-password" class="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 mt-3">
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg mt-4">Sign In</button>
+        </form>
+
+        <div class="mt-5 text-center"><a href="forgot_password.php" class="text-sm text-blue-600 hover:text-blue-800">Forgot Password?</a></div>
+
+        <!-- Footer -->
+        <div class="mt-8 pt-5 border-t border-gray-200 text-center space-y-2">
+                            <p class="text-xs text-gray-400">Powered by <strong class="text-gray-600">QrServe</strong></p>
+                
+                <!-- TSCO DARK LOGO for light backgrounds -->
+                <img src="https://tscocdn.sirv.com/TSCO-LOGO-EN-DARK.png" alt="TSCO Group" class="h-5 mx-auto my-1 drop-shadow-sm">
+                
+                <p class="text-sm font-bold text-gray-700 mt-1">Design & Development:</p>
+                <p class="text-base font-bold text-gray-800">Technology Solutions Company (TSCO Group)</p>
+                
+                <div class="mt-2 pt-2 border-t border-dashed border-gray-300 inline-block px-4">
+                    <p class="text-xs text-gray-500">
+                        <span class="inline-block mx-1">📧</span> support@tscogroup.com
+                    </p>
+                    <p class="text-xs text-gray-500 mt-1">
+                        <span class="inline-block mx-1">💬</span> WhatsApp: <strong>+968 91914282</strong> | <strong>+968 72289890</strong>
+                    </p>
+                </div>
+                
+                <p class="text-xs text-gray-300 mt-3">&copy; 2026 All Rights Reserved</p>
+                    </div>
+    </div>
+</body>
+</html>

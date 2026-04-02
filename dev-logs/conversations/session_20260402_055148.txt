@@ -1,0 +1,49 @@
+===============================================================================
+QrServe Enterprise Upgrade Session
+===============================================================================
+
+Date: $(date)
+Version: $PROTOCOL_VERSION
+Status: IN PROGRESS
+
+PROJECT GOALS:
+1. Implement Schema-Per-Tenant Architecture
+2. Add Enterprise Backup System
+3. Build Restore Functionality
+4. Create Cloning Tool
+5. Establish Conversation Safety Protocol
+
+ARCHITECTURE DECISIONS:
+- Database Type: SQLite (one file per company)
+- Connection Method: MultiTenantDbManager class
+- Backup Format: SQL dumps + Gzip compression
+- Storage Location: /opt/QrServe/backups/company_{id}/
+- Schema Template: /opt/QrServe/schema/company_schema.sql
+- Max Backups Per Company: 30 (auto-cleanup older ones)
+
+TECHNICAL IMPLEMENTATION:
+- DbManager.php: Connection pooling with caching
+- config.php: Multi-tenant detection via Nginx variable
+- create_company_db.sh: Automated DB creation for new companies
+- backup_company.sh: Manual + automated backups
+- restore_company.php: SA interface for one-click restore
+- clone_company.sh: Franchise/cloning feature
+
+NEXT STEPS AFTER THIS EXECUTION:
+1. Verify directory structure created
+2. Check PHP syntax on all new files
+3. Test port availability
+4. Push to GitHub (main branch)
+5. Begin implementing DbManager.php
+6. Update config.php for multi-tenant support
+7. Create database schema template
+8. Test with existing company data
+9. Implement backup system
+10. Build restore interface
+11. Test full workflow end-to-end
+
+NOTES:
+- This is a MAJOR architectural upgrade
+- Existing functionality will continue working during transition
+- Rollback is possible by reverting commits
+- All changes are tracked in Git history
