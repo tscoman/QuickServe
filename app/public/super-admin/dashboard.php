@@ -120,7 +120,7 @@ requireRole('super_admin');
                 <div class="p-4 border-b bg-gray-50"><h2 class="text-lg font-semibold">Restaurants (<?= count($companies) ?>)</h2></div>
                 <table class="w-full text-left border-collapse text-sm">
                     <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
-                        <tr><th class="p-3">Name</th><th class="p-3">Admin Email</th><th class="p-3">Theme</th><th class="p-3">Actions</th></tr>
+                        <tr><th class="p-3">Name</th><th class="p-3">Admin Email</th><th class="p-3">Theme</th><th class="p-3">Port</th><th class="p-3">Actions</th></tr>
                     </thead>
                     <tbody>
                         <?php foreach ($companies as $c): 
@@ -131,7 +131,17 @@ requireRole('super_admin');
                             <tr class="border-b hover:bg-gray-50">
                                 <td class="p-3 font-semibold"><?= sanitize($c['name']) ?></td>
                                 <td class="p-3 text-gray-500"><?= sanitize($admin_email ?? 'No Admin') ?></td>
+                                <td class="p-3 text-blue-600 font-bold">:8080</td></tr>
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-3" style="display:none"></td>
+                                <td class="p-3" style="display:none"></td>
+                                <td class="p-3" style="display:none"></td>
                                 <td class="p-3"><span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"><?= $c['theme'] ?></span></td>
+                                <td class="p-3 text-blue-600 font-bold">:8080</td></tr>
+                            <tr class="border-b hover:bg-gray-50">
+                                <td class="p-3" style="display:none"></td>
+                                <td class="p-3" style="display:none"></td>
+                                <td class="p-3" style="display:none"></td>
                                 <td class="p-3">
                                     <a href="view_company.php?id=<?= $c['id'] ?>" class="text-blue-600 hover:underline text-xs mr-2">Manage</a> 
                                     <a href="delete_company.php?id=<?= $c['id'] ?>" class="text-red-600 hover:underline text-xs font-semibold" onclick="return confirm('⚠️ Are you sure? This will permanently delete this restaurant!')">Delete</a>
