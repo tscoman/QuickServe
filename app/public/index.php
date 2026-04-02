@@ -40,13 +40,9 @@ if (!$is_sa_portal && $global_company_id) {
             $db_logo = trim($company["logo_url"] ?? "");
             
             if (!empty($db_logo)) {
-                if (strpos($db_logo, "http") === 0) {
-                    $logo_url = $db_logo;
-                } elseif (strpos($db_logo, "/") === 0) {
-                    $logo_url = $base . $db_logo;
-                } else {
-                    $logo_url = $base . "/uploads/" . $db_logo;
-                }
+                if (strpos($db_logo, "http") === 0) { $logo_url = $db_logo; }
+                elseif (strpos($db_logo, "/") === 0) { $logo_url = $base . $db_logo; }
+                else { $logo_url = $base . "/uploads/" . $db_logo; }
             }
             
             $portal_name = htmlspecialchars($company["name"]);
@@ -56,6 +52,13 @@ if (!$is_sa_portal && $global_company_id) {
         error_log("Error: " . $e->getMessage());
     }
 }
+
+// Get available languages
+ $languages = [];
+try {
+    $lang_stmt = $pdo->query("SELECT code, name, direction FROM languages WHERE is_active = 1 ORDER BY id");
+    $languages = $lang_stmt->fetchAll();
+} catch (Exception $e) {}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -67,14 +70,14 @@ if (!$is_sa_portal && $global_company_id) {
 </head>
 <body class="bg-gray-100 min-h-screen flex justify-center items-center p-4">
     <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-blue-600">
+        <!-- Logo -->
         <div class="flex justify-center mb-6">
             <?php if (!$is_sa_portal): ?>
             <div class="w-32 h-32 rounded-full bg-gray-100 border-4 border-dashed border-gray-300 p-2 flex items-center justify-center overflow-hidden">
                 <img src="<?= $logo_url ?>" alt="<?= $portal_name ?>" 
                      class="max-w-full max-h-full object-contain rounded-full"
-                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
-                     id="logo-img">
-                <span class="text-3xl font-bold text-gray-400 hidden" id="logo-fallback"><?= substr($portal_name,0,1) ?></span>
+                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+                <span class="text-3xl font-bold text-gray-400 hidden"><?= substr($portal_name,0,1) ?></span>
             </div>
             <?php else: ?>
             <img src="<?= $logo_url ?>" alt="Logo" class="h-16 object-contain" onerror="this.src='https://via.placeholder.com/150x50?text=TSCO'">
@@ -82,7 +85,23 @@ if (!$is_sa_portal && $global_company_id) {
         </div>
 
         <h2 class="text-2xl font-bold text-center text-gray-800 mb-2"><?= $portal_name ?></h2>
-        <p class="text-center text-gray-500 mb-8 text-sm"><?= $portal_tagline ?></p>
+        <p class="text-center text-gray-500 mb-4 text-sm"><?= $portal_tagline ?></p>
+
+        <!-- Language Switcher (only on restaurant portals) -->
+        <?php if (!$is_sa_portal && count($languages) > 1): ?>
+        <div class="flex justify-center gap-2 mb-4">
+            <?php foreach($languages as $lang): 
+                $is_current = ($lang['code'] == 'en');
+                $dir = $lang['direction'] ?? 'ltr';
+            ?>
+            <a href="?lang=<?= $lang['code'] ?>" 
+               class="text-xs px-3 py-1 rounded <?= $is_current ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?> transition"
+               dir="<?= $dir ?>">
+                <?= htmlspecialchars($lang['name']) ?>
+            </a>
+            <?php endforeach; ?>
+        </div>
+        <?php endif; ?>
 
         <?php if (isset($_GET["error"])): ?>
         <div class="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm text-center font-semibold">
@@ -98,6 +117,7 @@ if (!$is_sa_portal && $global_company_id) {
 
         <div class="mt-5 text-center"><a href="forgot_password.php" class="text-sm text-blue-600 hover:text-blue-800">Forgot Password?</a></div>
 
+        <!-- Footer -->
         <div class="mt-8 pt-5 border-t border-gray-200 text-center space-y-2">
             <?php if ($is_sa_portal): ?>
                 <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Super Admin Portal</p>
@@ -107,8 +127,8 @@ if (!$is_sa_portal && $global_company_id) {
             <?php else: ?>
                 <p class="text-xs text-gray-400">Powered by <strong class="text-gray-600">QrServe</strong></p>
                 
-                <!-- TSCO LIGHT LOGO HERE -->
-                <img src="https://tscocdn.sirv.com/TSCO-LOGO-EN-LIGHT.png" alt="TSCO Group" class="h-5 mx-auto my-1 drop-shadow-sm">
+                <!-- TSCO DARK LOGO for light backgrounds -->
+                <img src="https://tscocdn.sirv.com/TSCO-LOGO-EN-DARK.png" alt="TSCO Group" class="h-5 mx-auto my-1 drop-shadow-sm">
                 
                 <p class="text-sm font-bold text-gray-700 mt-1">Design & Development:</p>
                 <p class="text-base font-bold text-gray-800">Technology Solutions Company (TSCO Group)</p>
