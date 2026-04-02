@@ -1,0 +1,41 @@
+=== QrServe [FIX-500-001] Report ===
+Timestamp: Thu Apr  2 04:27:24 UTC 2026
+-----------------------------------
+[1/5] Checking PHP syntax...
+  ❌ config.php HAS SYNTAX ERROR:
+     PHP Parse error:  syntax error, unexpected token "==" in /opt/QrServe/app/includes/config.php on line 8
+Errors parsing /opt/QrServe/app/includes/config.php
+  ✅ index.php: No syntax errors
+
+[2/5] Latest Nginx errors (Port 8081):
+2026/04/02 04:21:03 [error] 2825203#2825203: *264 FastCGI sent in stderr: "PHP message: QrServe: Failed to fetch company info - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_active' in 'WHERE'" while reading response header from upstream, client: 38.51.165.111, server: _, request: "GET /index.php HTTP/1.1", upstream: "fastcgi://unix:/run/php/php8.2-fpm.sock:", host: "prmx.omanwebhosting.com:8081", referrer: "http://prmx.omanwebhosting.com:8081/super-admin/dashboard.php"
+2026/04/02 04:21:04 [error] 2825203#2825203: *264 FastCGI sent in stderr: "PHP message: QrServe: Failed to fetch company info - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_active' in 'WHERE'" while reading response header from upstream, client: 38.51.165.111, server: _, request: "GET /favicon.ico HTTP/1.1", upstream: "fastcgi://unix:/run/php/php8.2-fpm.sock:", host: "prmx.omanwebhosting.com:8081", referrer: "http://prmx.omanwebhosting.com:8081/index.php"
+2026/04/02 04:21:17 [error] 2825203#2825203: *264 FastCGI sent in stderr: "PHP message: QrServe: Failed to fetch company info - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_active' in 'WHERE'" while reading response header from upstream, client: 38.51.165.111, server: _, request: "GET / HTTP/1.1", upstream: "fastcgi://unix:/run/php/php8.2-fpm.sock:", host: "prmx.omanwebhosting.com:8081"
+2026/04/02 04:21:19 [error] 2825203#2825203: *264 FastCGI sent in stderr: "PHP message: QrServe: Failed to fetch company info - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_active' in 'WHERE'" while reading response header from upstream, client: 38.51.165.111, server: _, request: "GET /favicon.ico HTTP/1.1", upstream: "fastcgi://unix:/run/php/php8.2-fpm.sock:", host: "prmx.omanwebhosting.com:8081", referrer: "http://prmx.omanwebhosting.com:8081/"
+2026/04/02 04:22:37 [error] 2825203#2825203: *287 FastCGI sent in stderr: "PHP message: QrServe: Failed to fetch company info - SQLSTATE[42S22]: Column not found: 1054 Unknown column 'is_active' in 'WHERE'" while reading response header from upstream, client: 127.0.0.1, server: _, request: "HEAD / HTTP/1.1", upstream: "fastcgi://unix:/run/php/php8.2-fpm.sock:", host: "localhost:8081"
+2026/04/02 04:24:24 [error] 2825203#2825203: *412 FastCGI sent in stderr: "PHP message: PHP Parse error:  syntax error, unexpected token "==" in /opt/QrServe/app/includes/config.php on line 8" while reading response header from upstream, client: 38.51.165.111, server: _, request: "GET / HTTP/1.1", upstream: "fastcgi://unix:/run/php/php8.2-fpm.sock:", host: "prmx.omanwebhosting.com:8081", referrer: "http://prmx.omanwebhosting.com:8080/"
+
+[3/5] Main Nginx errors:
+  thrown in /opt/QrServe/app/public/index.php on line 5" while reading response header from upstream, client: 38.51.165.111, server: _, request: "GET / HTTP/1.1", upstream: "fastcgi://unix:/run/php/php8.2-fpm.sock:", host: "prmx.omanwebhosting.com:8080"
+2026/04/02 02:16:06 [error] 2746547#2746547: *148 FastCGI sent in stderr: "PHP message: PHP Warning:  imagewebp(): Palette image not supported by webp in /opt/QrServe/app/public/super-admin/add_company.php on line 23; PHP message: PHP Warning:  file_put_contents(/etc/nginx/sites-available/restaurant_taste-that-lasts-as-memory.conf): Failed to open stream: Permission denied in /opt/QrServe/app/public/super-admin/add_company.php on line 41; PHP message: PHP Warning:  symlink(): Permission denied in /opt/QrServe/app/public/super-admin/add_company.php on line 42" while reading response header from upstream, client: 38.51.165.111, server: _, request: "POST /super-admin/add_company.php HTTP/1.1", upstream: "fastcgi://unix:/run/php/php8.2-fpm.sock:", host: "prmx.omanwebhosting.com:8080", referrer: "http://prmx.omanwebhosting.com:8080/super-admin/dashboard.php"
+2026/04/02 04:24:17 [error] 2825202#2825202: *407 FastCGI sent in stderr: "PHP message: PHP Parse error:  syntax error, unexpected token "==" in /opt/QrServe/app/includes/config.php on line 8" while reading response header from upstream, client: 38.51.165.111, server: _, request: "GET /super-admin/dashboard.php?success=1 HTTP/1.1", upstream: "fastcgi://unix:/run/php/php8.2-fpm.sock:", host: "prmx.omanwebhosting.com:8080", referrer: "http://prmx.omanwebhosting.com:8080/super-admin/dashboard.php"
+2026/04/02 04:24:21 [error] 2825202#2825202: *407 FastCGI sent in stderr: "PHP message: PHP Parse error:  syntax error, unexpected token "==" in /opt/QrServe/app/includes/config.php on line 8" while reading response header from upstream, client: 38.51.165.111, server: _, request: "GET / HTTP/1.1", upstream: "fastcgi://unix:/run/php/php8.2-fpm.sock:", host: "prmx.omanwebhosting.com:8080"
+2026/04/02 04:24:21 [error] 2825202#2825202: *407 FastCGI sent in stderr: "PHP message: PHP Parse error:  syntax error, unexpected token "==" in /opt/QrServe/app/includes/config.php on line 8" while reading response header from upstream, client: 38.51.165.111, server: _, request: "GET / HTTP/1.1", upstream: "fastcgi://unix:/run/php/php8.2-fpm.sock:", host: "prmx.omanwebhosting.com:8080"
+
+[4/5] Applying fixes...
+  ✅ Files rewritten using Python (no heredoc issues)
+
+[5/5] Verifying fixes...
+  ❌ config.php: STILL BROKEN
+  ✅ index.php: VALID
+  ✅ Services restarted
+
+=== PORT TEST ===
+Port 8080 Status: 500 (200 = OK)
+Port 8081 Status: 500 (200 = OK)
+
+=== GITHUB SYNC ===
+✅ Pushed to GitHub successfully!
+-----------------------------------
+END OF REPORT
+

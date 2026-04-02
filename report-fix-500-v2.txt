@@ -1,0 +1,22 @@
+=== QrServe [FIX-500-002] Report ===
+Timestamp: Thu Apr  2 04:30:22 UTC 2026
+-----------------------------------
+[1/4] Writing config.php via Base64...
+  ❌ config.php: PHP Parse error:  syntax error, unexpected identifier "F", expecting "]" in /opt/QrServe/app/includes/config.php on line 7
+Errors parsing /opt/QrServe/app/includes/config.php
+
+[2/4] Writing index.php via Base64...
+  ❌ index.php: PHP Parse error:  syntax error, unexpected double-quoted string "[", expecting ")" in /opt/QrServe/app/public/index.php on line 6
+Errors parsing /opt/QrServe/app/public/index.php
+
+[3/4] Fixing missing 'is_active' column in database...
+  ✅ Database columns added (if missing)
+
+[4/4] Restarting services & testing...
+Port 8080 Status: 500 (200 = OK)
+Port 8081 Status: 500 (200 = OK)
+
+⚠️ Ports not returning 200 yet. Check errors above.
+-----------------------------------
+END OF REPORT
+
