@@ -112,7 +112,7 @@ if (isset($_POST['update_info'])) {
                 <a href="menu.php" class="block px-4 py-2 rounded hover:bg-gray-700 transition">🍔 Menu Manager</a>
                 <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700 transition">🖨️ Printers</a>
                 <a href="#" class="block px-4 py-2 rounded hover:bg-gray-700 transition">📱 QR Codes</a>
-            </nav>
+            <a href="../index.php?logout=1" class="text-sm bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 font-bold ml-auto"><i class="fas fa-sign-out-alt mr-1"></i>Logout</a></nav>
 
             <!-- Staff Section -->
             <div class="mt-auto pt-4 border-t border-gray-700">
