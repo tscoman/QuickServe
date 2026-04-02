@@ -1,0 +1,10 @@
+=== QrServe [SCRIPT-02-R01] Execution Report ===
+Timestamp: Wed Apr  1 23:47:03 UTC 2026
+-----------------------------------
+[1/2] Upgrading 'companies' table with premium fields...
+✅ SUCCESS: Companies table upgraded & 'taxes' table created.
+[2/2] Syncing updated schema to GitHub...
+✅ SUCCESS: Committed to GitHub.
+-----------------------------------
+END OF REPORT
+
