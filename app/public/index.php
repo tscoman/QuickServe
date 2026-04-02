@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../includes/config.php';
+require_once __DIR__ . '/../includes/auth.php';
 require_once __DIR__ . '/../includes/functions.php';
 if(isset($_GET["logout"])){ session_destroy(); header("Location: index.php"); exit(); }
 if (isLoggedIn()) {
@@ -78,5 +79,5 @@ if ($global_company_id) {
         <img src="<?= TSCO_LOGO_DARK ?>" alt="TSCO" class="h-5 mx-auto opacity-50">
     </div>
 
-</body>
+<div style="text-align:center;margin-top:15px"><a href="forgot_password.php" class="text-sm text-blue-600 hover:underline">Forgot Password?</a></div></body>
 </html>
