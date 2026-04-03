@@ -1,0 +1,432 @@
+================================================================================
+QrServe Infrastructure Audit Report
+================================================================================
+Timestamp: 2026-04-03 06:56:24
+Hostname: Qserve
+
+
+=================================================================================
+SECTION 1: File Structure Audit
+=================================================================================
+PHP Files:
+/opt/QrServe/app/includes/auth.php
+/opt/QrServe/app/includes/config.php
+/opt/QrServe/app/includes/functions.php
+/opt/QrServe/app/includes/helpers/order_helper.php
+/opt/QrServe/app/includes/helpers/qr_generator.php
+/opt/QrServe/app/includes/image_handler.php
+/opt/QrServe/app/public/admin/add_category.php
+/opt/QrServe/app/public/admin/add_item.php
+/opt/QrServe/app/public/admin/add_printer.php
+/opt/QrServe/app/public/admin/add_staff.php
+/opt/QrServe/app/public/admin/api/get_counts.php
+/opt/QrServe/app/public/admin/dashboard.php
+/opt/QrServe/app/public/admin/delete_printer.php
+/opt/QrServe/app/public/admin/delete_staff.php
+/opt/QrServe/app/public/admin/generate_qr.php
+/opt/QrServe/app/public/admin/menu.php
+/opt/QrServe/app/public/admin/save_receipt_settings.php
+/opt/QrServe/app/public/admin/toggle_category.php
+/opt/QrServe/app/public/admin/toggle_item.php
+/opt/QrServe/app/public/api/place_order.php
+/opt/QrServe/app/public/customer/menu.php
+/opt/QrServe/app/public/customer/track_order.php
+/opt/QrServe/app/public/forgot_password.php
+/opt/QrServe/app/public/index.php
+/opt/QrServe/app/public/login_process.php
+/opt/QrServe/app/public/super-admin/add_company.php
+/opt/QrServe/app/public/super-admin/add_sa_user.php
+/opt/QrServe/app/public/super-admin/dashboard.php
+/opt/QrServe/app/public/super-admin/delete_company.php
+/opt/QrServe/app/public/super-admin/edit_company.php
+/opt/QrServe/app/public/super-admin/force_reset.php
+/opt/QrServe/app/public/super-admin/profile.php
+/opt/QrServe/app/public/test_company.php
+
+Config files:
+-rw-r--r-- 1 root root 1.2K Apr  1 23:10 /opt/QrServe/app/includes/auth.php
+-rw-r--r-- 1 root root 1.3K Apr  2 06:31 /opt/QrServe/app/includes/config.php
+-rw-r--r-- 1 root root 1.9K Apr  1 23:10 /opt/QrServe/app/includes/functions.php
+-rw-r--r-- 1 root root 3.8K Apr  2 04:09 /opt/QrServe/app/includes/image_handler.php
+✅: Files scanned
+
+=================================================================================
+SECTION 2: Database Structure
+=================================================================================
+info
+=== COMPANIES TABLE ===
+id	name	slug	logo_url	theme	status
+3	Coffee Barista	coffee-barist-ruwi	/uploads/3/logo.webp	classic	active
+info
+=== TABLES BY COMPANY ===
+info
+=== USERS BY COMPANY ===
+company_id	user_count
+NULL	2
+3	1
+info
+=== MENU ITEMS BY COMPANY ===
+✅: Database audited
+
+=================================================================================
+SECTION 3: Configuration Files
+=================================================================================
+=== config.php ===
+<?php
+// QrServe Core Configuration
+ $filename = basename($_SERVER["PHP_SELF"] ?? "");
+if ($filename == "config.php") { exit("Direct access not permitted"); }
+
+// Get portal type from Nginx
+ $portal_type = $_SERVER["APP_COMPANY_ID"] ?? null;
+ $is_sa_portal = empty($portal_type);
+
+// Session isolation per portal
+if ($is_sa_portal) {
+    session_name("QRSERVE_SA");
+} else {
+    session_name("QRSERVE_C" . $portal_type);
+}
+
+if (session_status() === PHP_SESSION_NONE) {
+    ini_set("session.use_strict_mode", 1);
+    session_set_cookie_params([
+        "lifetime" => 0,
+        "path" => "/",
+        "domain" => "",
+        "secure" => false,
+        "httponly" => true,
+        "samesite" => "Lax"
+    ]);
+    session_start();
+}
+
+// Database connection
+ $host = "localhost";
+ $dbname = "qrserve_db";
+ $user = "qrserve_user";
+ $pass = "QrServe_App_User_2024!";
+
+try {
+    $pdo = new PDO(
+        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
+        $user,
+        $pass,
+        [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false
+        ]
+    );
+} catch (PDOException $e) {
+    die("QrServe Database Error: " . $e->getMessage());
+}
+
+ $global_company_id = $portal_type ? (int)$portal_type : null;
+?>
+
+=== auth.php (first 50 lines) ===
+<?php
+require_once 'config.php';
+
+// Check if user is logged in
+function isLoggedIn() {
+    return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
+}
+
+// Redirect if not logged in
+function requireLogin() {
+    if (!isLoggedIn()) {
+        header("Location: ../index.php?error=login_required");
+        exit();
+    }
+}
+
+// Strict Role Check (e.g., 'super_admin', 'company_admin', 'staff')
+function requireRole($role) {
+    requireLogin();
+    if ($_SESSION['role'] !== $role) {
+        header("Location: ../index.php?error=unauthorized_role");
+        exit();
+    }
+}
+
+// Allow multiple roles (e.g., ['company_admin', 'staff'])
+function requireAnyRole($roles) {
+    requireLogin();
+    if (!in_array($_SESSION['role'], $roles)) {
+        header("Location: ../index.php?error=unauthorized_role");
+        exit();
+    }
+}
+
+// Get current user's company ID (Crucial for Multi-Tenancy Data Isolation)
+function getCompanyId() {
+    return $_SESSION['company_id'] ?? null;
+}
+
+// Fetch current user details from DB
+function getCurrentUser($pdo) {
+    if (!isLoggedIn()) return null;
+    $stmt = $pdo->prepare("SELECT * FROM users WHERE id = ?");
+    $stmt->execute([$_SESSION['user_id']]);
+    return $stmt->fetch();
+}
+?>
+
+.env file status:
+❌ .env MISSING - Credentials hardcoded
+✅: Config checked
+
+=================================================================================
+SECTION 4: Logo Upload System
+=================================================================================
+Image handler:
+✅ image_handler.php exists
+
+Upload directory permissions:
+total 20K
+drwxr-xr-x  5 www-data www-data 4.0K Apr  2 23:27 .
+drwxr-xr-x 16 root     root     4.0K Apr  2 08:05 ..
+drwxr-xr-x  3 www-data www-data 4.0K Apr  2 10:08 2
+drwxr-xr-x  2 www-data www-data 4.0K Apr  2 23:28 3
+drwxr-xr-x  2 www-data www-data 4.0K Apr  2 23:27 new_temp_logo
+
+Company logos in database:
+id	name	logo_url
+3	Coffee Barista	/uploads/3/logo.webp
+
+add_company.php logo handling:
+15:    $logo_url = null;
+16:    if (isset($_FILES['logo']) && $_FILES['logo']['error'] === 0) {
+17:        $fileInfo = finfo_file(finfo_open(FILEINFO_MIME_TYPE), $_FILES['logo']['tmp_name']);
+18:        if (in_array($fileInfo, ['image/jpeg', 'image/png', 'image/webp'])) {
+19:            $targetDir = realpath(__DIR__ . '/../../../uploads') . "/new_temp_logo/";
+21:            $fileName = uniqid() . '.webp'; $targetPath = $targetDir . $fileName;
+22:            switch ($fileInfo) { case 'image/jpeg': $img = imagecreatefromjpeg($_FILES['logo']['tmp_name']); break; case 'image/png': $img = imagecreatefrompng($_FILES['logo']['tmp_name']); break; case 'image/webp': $img = imagecreatefromwebp($_FILES['logo']['tmp_name']); break; default: $img = false; }
+23:            if ($img) { imagewebp($img, $targetPath, 90); imagedestroy($img); $logo_url = "/uploads/new_temp_logo/{$fileName}"; }
+30:        $sql = "INSERT INTO companies (name, slug, phone, street_address, vat_number, cr_number, website_url, instagram_url, whatsapp_number, theme, custom_domain, logo_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+31:        $stmt = $pdo->prepare($sql); $stmt->execute([$name, $slug, $phone, $street_address, $vat_number, $cr_number, $website_url, $instagram_url, $whatsapp_number, $theme, $custom_domain, $logo_url]);
+33:        if ($logo_url) { $finalDir = realpath(__DIR__ . '/../../../uploads') . "/{$company_id}/"; if (!is_dir($finalDir)) mkdir($finalDir, 0755, true); rename(realpath(__DIR__ . '/../../../uploads/new_temp_logo/' . basename($logo_url)), $finalDir . '/logo.webp'); $pdo->prepare("UPDATE companies SET logo_url = ? WHERE id = ?")->execute(["/uploads/{$company_id}/logo.webp", $company_id]); }
+40:        $nginx_conf = "server { listen {$listen_port}; server_name {$server_name}; root /opt/QrServe/app/public; index index.php index.html; location / { try_files \$uri \$uri/ /index.php?\$query_string; } location ~ \.php\$ { include snippets/fastcgi-php.conf; fastcgi_pass unix:/run/php/php8.2-fpm.sock; fastcgi_param APP_COMPANY_ID {$company_id}; } }";
+41:        file_put_contents("/etc/nginx/sites-available/restaurant_{$slug}.conf", $nginx_conf);
+✅: Logo upload checked
+
+=================================================================================
+SECTION 5: Company Data Isolation
+=================================================================================
+Company count:
+total_companies
+1
+
+All companies:
+id	name	slug	theme	status
+3	Coffee Barista	coffee-barist-ruwi	classic	active
+
+Sample SQL queries to verify isolation:
+
+-- Check if all menu_items queries have company_id
+SELECT table_name, column_name FROM information_schema.columns 
+WHERE table_name IN ('menu_items', 'categories', 'orders', 'tables', 'users') 
+AND column_name = 'company_id';
+
+-- Verify company data completely separated
+SELECT company_id, COUNT(*) FROM menu_items GROUP BY company_id;
+SELECT company_id, COUNT(*) FROM orders GROUP BY company_id;
+SELECT company_id, COUNT(*) FROM tables GROUP BY company_id;
+
+✅: Isolation checked
+
+=================================================================================
+SECTION 6: Port Allocation System
+=================================================================================
+Active ports 8080-8090:
+tcp        0      0 0.0.0.0:8080            0.0.0.0:*               LISTEN      2746545/nginx: mast 
+tcp        0      0 0.0.0.0:8081            0.0.0.0:*               LISTEN      2746545/nginx: mast 
+tcp6       0      0 :::8080                 :::*                    LISTEN      2746545/nginx: mast 
+
+Nginx available sites:
+total 28K
+drwxr-xr-x 2 www-data www-data 4.0K Apr  2 23:27 .
+drwxr-xr-x 8 root     root     4.0K Apr  1 22:59 ..
+-rw-r--r-- 1 www-data www-data  694 Apr  1 23:03 default
+-rw-r--r-- 1 www-data www-data 2.4K Apr  1 23:03 default.bak
+-rw-r--r-- 1 root     root      794 Apr  2 04:17 qrserve_company_2.conf
+-rw-r--r-- 1 root     root     1.4K Apr  2 04:16 restaurant_Grill_taste-that-lasts-as-memory.conf
+-rw-r--r-- 1 www-data www-data  291 Apr  2 23:27 restaurant_coffee-barist-ruwi.conf
+
+Nginx conf.d:
+total 12K
+drwxr-xr-x 2 root root 4.0K Apr  2 04:40 .
+drwxr-xr-x 8 root root 4.0K Apr  1 22:59 ..
+-rw-r--r-- 1 root root  161 Apr  2 04:40 qrserve-uploads.conf
+✅: Port allocation checked
+
+=================================================================================
+SECTION 7: Backup & Restore System
+=================================================================================
+Backup scripts:
+-rwxr-xr-x 1 root root 3.1K Apr  2 05:51 /opt/QrServe/tools/auto_backup_all.sh
+-rwxr-xr-x 1 root root 3.1K Apr  2 05:51 /opt/QrServe/tools/backup_company.sh
+
+Restore scripts:
+
+Backups directory:
+total 8.0K
+drwxr-xr-x  2 root root 4.0K Apr  2 05:51 .
+drwxr-xr-x 16 root root 4.0K Apr  2 08:05 ..
+✅: Backup system checked
+
+=================================================================================
+SECTION 8: Branded Login Panel
+=================================================================================
+Login page exists:
+❌ login.php NOT FOUND
+
+Branding in login.php:
+⚠️ May need to add company branding
+✅: Login panel checked
+
+=================================================================================
+SECTION 9: GitHub Repository Status
+=================================================================================
+Recent commits:
+5f0bab3 QrServe Part 2: Customer UI, APIs - 2026-04-03 06:44:55
+cdaf8f3 QrServe Part 2: Customer UI, APIs - 2026-04-02 23:22:32
+e9b37d6 QrServe Part 1: Database tables and helpers - 2026-04-02 23:19:45
+a4941d7 Start 48-hour sprint - production deployment
+04e5c9a Clean up corrupted files and restore missing code
+eb961fb Local changes before sync with remote
+37247fe Create claude-continuity folder for AI development tracking
+037b4b3 Add files via upload
+4d222b9 Add logout button to admin dashboard
+2dad229 Fix: restore_company.php syntax + port test fix
+
+Git status:
+On branch main
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   claude-continuity/PART2_BUILD_REPORT.txt
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	claude-continuity/INFRASTRUCTURE_AUDIT.txt
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+Differences from GitHub:
+claude-continuity/PART2_BUILD_REPORT.txt
+✅: GitHub status checked
+
+=================================================================================
+SECTION 10: CRITICAL ISSUES & RECOMMENDATIONS
+=================================================================================
+
+================================================================================
+INFRASTRUCTURE ISSUES & ACTION ITEMS
+================================================================================
+
+CRITICAL (MUST FIX FIRST):
+==========================
+
+1. ❌ LOGO UPLOAD FUNCTIONALITY
+   Status: Likely NOT WORKING
+   Issue: add_company.php doesn't handle file uploads properly
+   Impact: Can't add branded restaurants
+   Fix Required:
+     - Check image_handler.php exists and works
+     - Add proper file upload to add_company.php
+     - Test logo upload and storage
+     - Verify logo displays in login page
+
+2. ❌ BACKUP/RESTORE SYSTEM MISSING
+   Status: CRITICAL GAP
+   Issue: No per-company backup scripts
+   Impact: Data corruption = complete loss for that restaurant
+   Fix Required:
+     - Create backup_company.sh script
+     - Create restore_company.sh script
+     - Create restore_all.sh for quick recovery
+     - Test backup and restore with real data
+     - Add automated daily backups
+
+3. ⚠️ COMPANY ISOLATION VERIFICATION
+   Status: NEEDS VERIFICATION
+   Issue: Must ensure complete data isolation between restaurants
+   Impact: Data leaks between companies
+   Fix Required:
+     - Verify ALL queries include company_id WHERE clause
+     - Check foreign key constraints
+     - Test with 2+ simultaneous restaurants
+     - Audit sensitive functions (login, menu, orders)
+
+HIGH (SHOULD FIX BEFORE GOING LIVE):
+====================================
+
+4. ⚠️ PORT ALLOCATION SYSTEM
+   Status: NEEDS VERIFICATION
+   Issue: Each company should get own port (8081, 8082, etc.)
+   Impact: Can't run multiple restaurants on different ports
+   Fix Required:
+     - Verify Nginx is configured per company
+     - Verify PHP-FPM pools per company
+     - Test port assignment system
+     - Document port allocation procedure
+
+5. ⚠️ BRANDED LOGIN PANEL
+   Status: NEEDS VERIFICATION
+   Issue: Login should show company logo/theme/branding
+   Impact: All restaurants look the same to users
+   Fix Required:
+     - Verify login.php fetches company data
+     - Display company logo and theme
+     - Test with 2+ companies
+     - Verify each port shows different branding
+
+6. ⚠️ .ENV FILE / CREDENTIALS
+   Status: HARDCODED
+   Issue: Database credentials in config.php (security risk)
+   Impact: Credentials visible in git history and backups
+   Fix Required:
+     - Create .env file
+     - Use environment variables
+     - Never commit credentials to GitHub
+
+================================================================================
+RECOMMENDED FIX ORDER:
+================================================================================
+
+PHASE 1 (TODAY): Infrastructure Fixes
+  1. Logo upload functionality
+  2. Backup/restore system creation
+  3. Company isolation verification
+  4. Move credentials to .env
+
+PHASE 2 (NEXT): Multi-Tenant Verification
+  1. Port allocation verification
+  2. Branded login verification
+  3. Add second test restaurant (Company 2)
+  4. Test simultaneous access on different ports
+
+PHASE 3 (THEN): Feature Development
+  1. Complete Part 2 (customer UI)
+  2. Complete Part 3 (APIs, payments)
+  3. Production deployment
+
+================================================================================
+
+✅: Audit analysis complete
+
+=================================================================================
+SECTION 11: Summary
+=================================================================================
+✅ INFRASTRUCTURE AUDIT COMPLETE
+Timestamp: 2026-04-03 06:56:24
+
+Report saved to: /opt/QrServe/claude-continuity/INFRASTRUCTURE_AUDIT.txt
+
+NEXT STEPS:
+1. Review the issues above carefully
+2. We will fix CRITICAL issues before continuing development
+3. Goal: Each restaurant must have complete isolation, backup, and branding

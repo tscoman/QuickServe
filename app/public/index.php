@@ -1,150 +1,88 @@
 <?php
 require_once __DIR__ . "/../includes/config.php";
-require_once __DIR__ . "/../includes/auth.php";
-require_once __DIR__ . "/../includes/functions.php";
 
-if (isset($_GET["logout"])) { session_destroy(); header("Location: index.php"); exit(); }
+// Get company from port via APP_COMPANY_ID
+$company_id = $_SERVER["APP_COMPANY_ID"] ?? null;
+$company = null;
+$is_sa = false;
 
-if (isLoggedIn()) {
-    $role = $_SESSION["role"] ?? "";
-    if ($role === "super_admin") {
-        if ($is_sa_portal) { redirect("super-admin/dashboard.php"); }
-        else { session_destroy(); header("Location: index.php?error=unauthorized_role"); exit(); }
+if (!$company_id) {
+    // Super Admin portal (8080)
+    $is_sa = true;
+    $company_name = "QrServe Super Admin";
+    $company_logo = null;
+    $company_theme = "midnight";
+} else {
+    // Company portal - fetch branding from database
+    $stmt = $pdo->prepare("SELECT id, name, logo_url, theme FROM companies WHERE id = ? AND status = 'active'");
+    $stmt->execute([$company_id]);
+    $company = $stmt->fetch();
+    
+    if (!$company) {
+        die("Restaurant not found or inactive");
     }
-    if ($role === "company_admin") {
-        if (!$is_sa_portal && $global_company_id) {
-            if (($_SESSION["company_id"] ?? null) != $global_company_id) { session_destroy(); header("Location: index.php?error=unauthorized_role"); exit(); }
-        }
-        redirect("admin/dashboard.php");
-    }
-    if ($role === "staff") { redirect("staff/orders.php"); }
-    redirect("index.php?error=unauthorized_role");
+    
+    $company_name = $company['name'];
+    $company_logo = $company['logo_url'];
+    $company_theme = $company['theme'] ?? 'midnight';
 }
 
- $company = null;
- $logo_url = "https://tscocdn.sirv.com/TSCO-LOGO-EN-DARK.png";
- $portal_name = "QrServe Admin";
- $portal_tagline = "A revolutionary app for restaurants and cafes";
+// Theme colors
+$colors = [
+    'midnight' => ['bg' => '#1a1a2e', 'text' => '#fff', 'primary' => '#0f3460', 'accent' => '#16c784'],
+    'garden' => ['bg' => '#f0f7f0', 'text' => '#2d5016', 'primary' => '#52b788', 'accent' => '#74c69d'],
+    'classic' => ['bg' => '#f5f5f5', 'text' => '#333', 'primary' => '#1f4788', 'accent' => '#4a90e2'],
+    'rustic' => ['bg' => '#8b7355', 'text' => '#f5f5dc', 'primary' => '#d2691e', 'accent' => '#ff9800']
+];
+$c = $colors[$company_theme] ?? $colors['midnight'];
 
-if (!$is_sa_portal && $global_company_id) {
-    try {
-        $stmt = $pdo->prepare("SELECT * FROM companies WHERE id = ?");
-        $stmt->execute([$global_company_id]);
-        $company = $stmt->fetch();
-        
-        if ($company) {
-            $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
-            $host = $_SERVER['HTTP_HOST'] ?? 'prmx.omanwebhosting.com';
-            $base = $protocol . "://" . $host;
-            
-            $db_logo = trim($company["logo_url"] ?? "");
-            
-            if (!empty($db_logo)) {
-                if (strpos($db_logo, "http") === 0) { $logo_url = $db_logo; }
-                elseif (strpos($db_logo, "/") === 0) { $logo_url = $base . $db_logo; }
-                else { $logo_url = $base . "/uploads/" . $db_logo; }
-            }
-            
-            $portal_name = htmlspecialchars($company["name"]);
-            $portal_tagline = "Welcome! Please sign in.";
-        }
-    } catch (Exception $e) {
-        error_log("Error: " . $e->getMessage());
-    }
-}
-
-// Get available languages
- $languages = [];
-try {
-    $lang_stmt = $pdo->query("SELECT code, name, direction FROM languages WHERE is_active = 1 ORDER BY id");
-    $languages = $lang_stmt->fetchAll();
-} catch (Exception $e) {}
+$error = $_GET['error'] ?? null;
+$success = $_GET['success'] ?? null;
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= $portal_name ?> - Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title><?php echo htmlspecialchars($company_name); ?> - Login</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+:root { --bg: <?php echo $c['bg']; ?>; --text: <?php echo $c['text']; ?>; --primary: <?php echo $c['primary']; ?>; }
+body { background: var(--bg); color: var(--text); }
+.btn-primary { background: var(--primary); color: white; }
+</style>
 </head>
-<body class="bg-gray-100 min-h-screen flex justify-center items-center p-4">
-    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md border-t-4 border-blue-600">
-        <!-- Logo -->
-        <div class="flex justify-center mb-6">
-            <?php if (!$is_sa_portal): ?>
-            <div class="w-32 h-32 rounded-full bg-gray-100 border-4 border-dashed border-gray-300 p-2 flex items-center justify-center overflow-hidden">
-                <img src="<?= $logo_url ?>" alt="<?= $portal_name ?>" 
-                     class="max-w-full max-h-full object-contain rounded-full"
-                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-                <span class="text-3xl font-bold text-gray-400 hidden"><?= substr($portal_name,0,1) ?></span>
-            </div>
-            <?php else: ?>
-            <img src="<?= $logo_url ?>" alt="Logo" class="h-16 object-contain" onerror="this.src='https://via.placeholder.com/150x50?text=TSCO'">
-            <?php endif; ?>
-        </div>
+<body class="min-h-screen flex items-center justify-center">
+<div class="max-w-md w-full bg-white/10 backdrop-blur-sm rounded-lg shadow-2xl p-8">
+<?php if ($company_logo): ?>
+<div class="text-center mb-6">
+<img src="<?php echo htmlspecialchars($company_logo); ?>" alt="Logo" class="h-20 mx-auto rounded-lg">
+</div>
+<?php endif; ?>
+<h1 class="text-3xl font-bold text-center mb-2"><?php echo htmlspecialchars($company_name); ?></h1>
+<p class="text-center text-sm opacity-75 mb-6"><?php echo $is_sa ? 'Administration Portal' : 'Restaurant Login'; ?></p>
 
-        <h2 class="text-2xl font-bold text-center text-gray-800 mb-2"><?= $portal_name ?></h2>
-        <p class="text-center text-gray-500 mb-4 text-sm"><?= $portal_tagline ?></p>
+<?php if ($error): ?>
+<div class="bg-red-500/20 text-red-200 p-3 rounded mb-4 text-sm">
+<?php echo htmlspecialchars($error); ?>
+</div>
+<?php endif; ?>
 
-        <!-- Language Switcher (only on restaurant portals) -->
-        <?php if (!$is_sa_portal && count($languages) > 1): ?>
-        <div class="flex justify-center gap-2 mb-4">
-            <?php foreach($languages as $lang): 
-                $is_current = ($lang['code'] == 'en');
-                $dir = $lang['direction'] ?? 'ltr';
-            ?>
-            <a href="?lang=<?= $lang['code'] ?>" 
-               class="text-xs px-3 py-1 rounded <?= $is_current ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300' ?> transition"
-               dir="<?= $dir ?>">
-                <?= htmlspecialchars($lang['name']) ?>
-            </a>
-            <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
+<form method="POST" action="login_process.php" class="space-y-4">
+<div>
+<label class="block text-sm font-bold mb-2">Email</label>
+<input type="email" name="email" required class="w-full bg-white/10 border border-white/30 rounded px-4 py-2 text-white placeholder-white/50" placeholder="your@email.com">
+</div>
+<div>
+<label class="block text-sm font-bold mb-2">Password</label>
+<input type="password" name="password" required class="w-full bg-white/10 border border-white/30 rounded px-4 py-2 text-white placeholder-white/50" placeholder="••••••••">
+</div>
+<button type="submit" class="w-full btn-primary py-2 rounded font-bold">Login</button>
+</form>
 
-        <?php if (isset($_GET["error"])): ?>
-        <div class="bg-red-100 text-red-700 p-3 rounded mb-4 text-sm text-center font-semibold">
-            <?= ["login_required"=>"Session expired","invalid_credentials"=>"Invalid credentials","unauthorized_role"=>"Access denied"][$_GET["error"]] ?? "Error" ?>
-        </div>
-        <?php endif; ?>
-
-        <form action="login_process.php" method="POST" class="space-y-4">
-            <input type="email" name="email" required placeholder="Email Address" autocomplete="email" class="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500">
-            <input type="password" name="password" required placeholder="Password" minlength="6" autocomplete="current-password" class="w-full px-4 py-3 rounded-lg border focus:ring-2 focus:ring-blue-500 mt-3">
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg mt-4">Sign In</button>
-        </form>
-
-        <div class="mt-5 text-center"><a href="forgot_password.php" class="text-sm text-blue-600 hover:text-blue-800">Forgot Password?</a></div>
-
-        <!-- Footer -->
-        <div class="mt-8 pt-5 border-t border-gray-200 text-center space-y-2">
-            <?php if ($is_sa_portal): ?>
-                <p class="text-xs font-semibold text-gray-600 uppercase tracking-wide">Super Admin Portal</p>
-                <p class="text-xs text-gray-500">Technology Solutions Company (TSCO Group)</p>
-                <p class="text-xs text-gray-400">support@tscogroup.com</p>
-                <img src="https://tscocdn.sirv.com/TSCO-LOGO-EN-DARK.png" alt="TSCO" class="h-5 mx-auto mt-2 opacity-70">
-            <?php else: ?>
-                <p class="text-xs text-gray-400">Powered by <strong class="text-gray-600">QrServe</strong></p>
-                
-                <!-- TSCO DARK LOGO for light backgrounds -->
-                <img src="https://tscocdn.sirv.com/TSCO-LOGO-EN-DARK.png" alt="TSCO Group" class="h-5 mx-auto my-1 drop-shadow-sm">
-                
-                <p class="text-sm font-bold text-gray-700 mt-1">Design & Development:</p>
-                <p class="text-base font-bold text-gray-800">Technology Solutions Company (TSCO Group)</p>
-                
-                <div class="mt-2 pt-2 border-t border-dashed border-gray-300 inline-block px-4">
-                    <p class="text-xs text-gray-500">
-                        <span class="inline-block mx-1">📧</span> support@tscogroup.com
-                    </p>
-                    <p class="text-xs text-gray-500 mt-1">
-                        <span class="inline-block mx-1">💬</span> WhatsApp: <strong>+968 91914282</strong> | <strong>+968 72289890</strong>
-                    </p>
-                </div>
-                
-                <p class="text-xs text-gray-300 mt-3">&copy; <?= date("Y") ?> All Rights Reserved</p>
-            <?php endif; ?>
-        </div>
-    </div>
+<div class="mt-4 text-center text-sm">
+<a href="forgot_password.php" class="opacity-75 hover:opacity-100">Forgot password?</a>
+</div>
+</div>
 </body>
 </html>

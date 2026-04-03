@@ -5,3 +5,13 @@ Thumbs.db
 vendor/
 node_modules/
 *.sql.dump
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Sensitive files
+*.log
+backups/
+uploads/
+node_modules/
